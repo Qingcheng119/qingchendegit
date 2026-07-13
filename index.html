@@ -55,9 +55,15 @@
         .topbar .right .status-dot {
             width: 8px; height: 8px;
             border-radius: 50%;
-            background: #52c41a;
             display: inline-block;
             margin-right: 4px;
+        }
+        .topbar .right .mode-badge {
+            background: #f0f0f0;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #666;
         }
         .topbar .right .settings-btn {
             background: none;
@@ -84,16 +90,43 @@
             background: #fff;
             border-radius: 16px;
             padding: 32px;
-            width: 420px;
+            width: 440px;
             max-width: 90vw;
             box-shadow: 0 20px 60px rgba(0,0,0,.15);
             animation: modalIn .25s ease;
         }
         @keyframes modalIn { from { opacity: 0; transform: scale(.95) translateY(10px); } }
-        .modal h2 { font-size: 18px; margin-bottom: 8px; }
-        .modal p.desc { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.6; }
+        .modal h2 { font-size: 18px; margin-bottom: 16px; }
+
+        /* 模式切换 */
+        .mode-switch {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 20px;
+        }
+        .mode-switch button {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            color: #888;
+        }
+        .mode-switch button.active {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .mode-switch button:hover:not(.active) { color: #555; }
+
         .modal label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
-        .modal input[type="password"], .modal input[type="text"] {
+        .modal input[type="password"] {
             width: 100%;
             padding: 10px 14px;
             border: 1px solid #ddd;
@@ -101,7 +134,7 @@
             font-size: 14px;
             outline: none;
             transition: border-color .2s;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .modal input:focus { border-color: #4facfe; box-shadow: 0 0 0 3px rgba(79,172,254,.1); }
         .modal .model-select {
@@ -114,6 +147,15 @@
             background: #fff;
             margin-bottom: 16px;
         }
+        .modal .api-section { display: none; }
+        .modal .api-section.show { display: block; }
+        .modal .api-hint {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .modal .api-hint a { color: #4facfe; }
         .modal .btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
         .modal .btn-row button {
             padding: 8px 20px;
@@ -362,9 +404,9 @@
         <span>AI 工作助手</span>
     </div>
     <div class="right">
-        <span><span class="status-dot" id="statusDot"></span><span id="statusText">未配置</span></span>
+        <span id="statusDisplay"><span class="status-dot" id="statusDot"></span><span id="statusText">就绪</span></span>
         <span>|</span>
-        <span id="modelDisplay">-</span>
+        <span class="mode-badge" id="modeBadge">🎭 离线版</span>
         <span>|</span>
         <button class="settings-btn" id="settingsBtn" title="设置">⚙️</button>
     </div>
@@ -373,18 +415,28 @@
 <!-- ===== 设置弹窗 ===== -->
 <div class="modal-overlay" id="modalOverlay">
     <div class="modal">
-        <h2>⚙️ 配置 DeepSeek API</h2>
-        <p class="desc">
-            去 <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color:#4facfe;">platform.deepseek.com</a> 
-            注册并创建一个 API Key，粘贴到下面即可使用。
-        </p>
-        <label>DeepSeek API Key</label>
-        <input type="password" id="apiKeyInput" placeholder="sk-..." />
-        <label>模型选择</label>
-        <select class="model-select" id="modelSelect">
-            <option value="deepseek-chat">deepseek-chat（推荐）</option>
-            <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
-        </select>
+        <h2>⚙️ 设置</h2>
+
+        <!-- 模式切换 -->
+        <div class="mode-switch">
+            <button data-mode="offline" class="active">🎭 离线摸鱼版</button>
+            <button data-mode="api">🤖 在线 AI 版 (DeepSeek)</button>
+        </div>
+
+        <!-- AI 版设置 -->
+        <div class="api-section" id="apiSection">
+            <label>DeepSeek API Key</label>
+            <input type="password" id="apiKeyInput" placeholder="sk-..." />
+            <div class="api-hint">
+                免费注册：<a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a> → 创建 API Key
+            </div>
+            <label>模型选择</label>
+            <select class="model-select" id="modelSelect">
+                <option value="deepseek-chat">deepseek-chat（推荐）</option>
+                <option value="deepseek-reasoner">deepseek-reasoner（深度思考）</option>
+            </select>
+        </div>
+
         <div class="btn-row">
             <button class="btn-secondary" id="modalCancel">取消</button>
             <button class="btn-primary" id="modalSave">保存</button>
@@ -398,7 +450,7 @@
     <div class="chat-inner" id="chatInner">
         <!-- 消息会通过 JS 动态渲染 -->
         <div style="text-align:center;color:#bbb;font-size:13px;padding:40px 0;" id="welcomeMsg">
-            上方 ⚙️ 配置 DeepSeek API Key 后即可开始对话
+            点击右上角 ⚙️ 设置，选择要使用的模式
         </div>
     </div>
 </div>
@@ -412,17 +464,17 @@
 </div>
 
 <!-- ===== 模式指示器 ===== -->
-<div class="mode-indicator" id="indicator">
-    📖 摸鱼模式
-</div>
+<div class="mode-indicator" id="indicator">📖 摸鱼模式</div>
 
 <script>
 (function() {
     // ===== 状态 =====
     let apiKey = localStorage.getItem('deepseek_key') || '';
     let model = localStorage.getItem('deepseek_model') || 'deepseek-chat';
+    let currentMode = localStorage.getItem('moyu_mode') || 'offline'; // 'offline' | 'api'
     let messages = [];
     let isLoading = false;
+    let offlineLoaded = false;
 
     // ===== 小说语料库 =====
     const NOVEL_POOL = [
@@ -457,108 +509,139 @@
     const modalStatus = document.getElementById('modalStatus');
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
-    const modelDisplay = document.getElementById('modelDisplay');
+    const modeBadge = document.getElementById('modeBadge');
     const indicator = document.getElementById('indicator');
     const welcomeMsg = document.getElementById('welcomeMsg');
+    const apiSection = document.getElementById('apiSection');
+    const modeButtons = document.querySelectorAll('.mode-switch button');
+
+    // ===== 模式切换 =====
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const mode = btn.dataset.mode;
+            if (mode === 'api') {
+                apiSection.classList.add('show');
+            } else {
+                apiSection.classList.remove('show');
+            }
+        });
+    });
 
     // ===== 初始化 =====
     function init() {
-        if (apiKey) {
-            apiKeyInput.value = apiKey;
-            modelSelect.value = model;
-            enableChat(true);
+        // 根据保存的模式设置 UI
+        if (currentMode === 'api') {
+            modeButtons.forEach(b => {
+                b.classList.toggle('active', b.dataset.mode === 'api');
+            });
+            apiSection.classList.add('show');
         }
-        updateStatusBar();
 
-        // 设定时清掉欢迎语
-        if (apiKey && messages.length === 0) {
-            addWelcomeMessages();
-        }
+        apiKeyInput.value = apiKey;
+        modelSelect.value = model;
+        applyMode();
     }
 
-    // 初始欢迎消息（含小说彩蛋）
-    function addWelcomeMessages() {
+    function applyMode() {
+        if (currentMode === 'offline') {
+            enableChat(false);
+            modeBadge.textContent = '🎭 离线版';
+            statusDot.style.background = '#52c41a';
+            statusText.textContent = '就绪';
+            inputBox.placeholder = '离线摸鱼模式，按空格看小说';
+            if (!offlineLoaded) loadOfflineDemo();
+        } else {
+            if (apiKey) {
+                enableChat(true);
+                statusDot.style.background = '#52c41a';
+                statusText.textContent = '已就绪';
+                inputBox.placeholder = '给 AI 工作助手发送消息...';
+            } else {
+                enableChat(false);
+                statusDot.style.background = '#faad14';
+                statusText.textContent = '未配置 Key';
+                inputBox.placeholder = '请先配置 DeepSeek API Key';
+            }
+            modeBadge.textContent = '🤖 在线版';
+        }
+        updateModelDisplay();
+    }
+
+    function updateModelDisplay() {
+        // 已合入 modeBadge
+    }
+
+    // ===== 离线版 Demo =====
+    function loadOfflineDemo() {
+        if (offlineLoaded) return;
+        offlineLoaded = true;
         welcomeMsg.style.display = 'none';
+        chatInner.innerHTML = '';
+
         const now = new Date();
         const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+        messages = [];
 
         // 助手欢迎
-        addMessage('assistant', [
-            '你好！我是你的 AI 工作助手。有什么可以帮助你的？',
-            '可以问我技术问题、写代码、整理文档、分析数据，或者讨论项目方案。'
-        ], time);
+        addMessage('assistant', ['你好！我是你的 AI 工作助手。有什么可以帮助你的？', '可以问我技术问题、写代码、整理文档、分析数据，或者讨论项目方案。'], time);
+        messages.push({ role: 'assistant', content: '欢迎消息' });
 
-        // 第一条用户消息的示例回复（含小说内容）
+        // 用户问题
+        addMessage('user', ['帮我写一个 JavaScript 防抖函数'], time);
         messages.push({ role: 'user', content: '帮我写一个 JavaScript 防抖函数' });
-        const userBubble = createBubble('user', ['帮我写一个 JavaScript 防抖函数']);
-        const userMsg = createMessage('user', userBubble, time);
-        chatInner.appendChild(userMsg);
 
+        // 带小说的回复
         const asstContent = [
             { fake: '好的，这是一个带 <code>immediate</code> 选项的防抖函数：', novel: '少年盘膝坐在青石之上，感受着丹田中那一缕微弱的灵气缓缓流转。三年前他初入此境，如今终于摸到了筑基的门槛。' },
             { fake: '使用方式也很简单，可以直接传入回调函数和延迟时间。', novel: '"前辈，这天地之间的灵气……为何越来越稀薄了？"他低声问道。老者没有回答，只是指了指天际那道若隐若现的裂缝。' },
             { fake: '如果 <code>immediate</code> 设为 <code>true</code>，会在第一次触发时立即执行，之后在延迟时间内再次触发不会执行。', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"' },
         ];
 
-        const paragraphs = [];
-        paragraphs.push('<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;"><span style="color:#d73a49;">function</span> <span style="color:#6f42c1;">debounce</span>(fn, delay, immediate = <span style="color:#005cc5;">false</span>) {\n    <span style="color:#d73a49;">let</span> timer = <span style="color:#005cc5;">null</span>;\n    <span style="color:#d73a49;">return function</span>(...args) {\n        <span style="color:#d73a49;">const</span> callNow = immediate && !timer;\n        <span style="color:#d73a49;">if</span> (timer) clearTimeout(timer);\n        timer = setTimeout(() => {\n            timer = <span style="color:#005cc5;">null</span>;\n            <span style="color:#d73a49;">if</span> (!immediate) fn.apply(<span style="color:#005cc5;">this</span>, args);\n        }, delay);\n        <span style="color:#d73a49;">if</span> (callNow) fn.apply(<span style="color:#005cc5;">this</span>, args);\n    };\n}</pre>');
+        let html = '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;"><span style="color:#d73a49;">function</span> <span style="color:#6f42c1;">debounce</span>(fn, delay, immediate = <span style="color:#005cc5;">false</span>) {\n    <span style="color:#d73a49;">let</span> timer = <span style="color:#005cc5;">null</span>;\n    <span style="color:#d73a49;">return function</span>(...args) {\n        <span style="color:#d73a49;">const</span> callNow = immediate && !timer;\n        <span style="color:#d73a49;">if</span> (timer) clearTimeout(timer);\n        timer = setTimeout(() => {\n            timer = <span style="color:#005cc5;">null</span>;\n            <span style="color:#d73a49;">if</span> (!immediate) fn.apply(<span style="color:#005cc5;">this</span>, args);\n        }, delay);\n        <span style="color:#d73a49;">if</span> (callNow) fn.apply(<span style="color:#005cc5;">this</span>, args);\n    };\n}</pre>';
 
         asstContent.forEach(item => {
-            paragraphs.push(`<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`);
+            html += `<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`;
         });
 
-        addMessageHTML('assistant', paragraphs.join('\n'), time);
-        messages.push({ role: 'assistant', content: '好的，这是一个带 immediate 选项的防抖函数：...（含小说内容）' });
+        addMessageHTML('assistant', html, time);
+        messages.push({ role: 'assistant', content: '防抖函数回复（含小说）' });
+
+        // 用户第二个问题
+        addMessage('user', ['那节流（throttle）呢？有什么区别？'], time);
+        messages.push({ role: 'user', content: '那节流呢？有什么区别？' });
+
+        // 第二个含小说回复
+        const asst2 = [
+            { fake: '防抖和节流的核心区别：', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"' },
+        ];
+        let html2 = '';
+        asst2.forEach(item => {
+            html2 += `<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`;
+        });
+        html2 += '<ul style="margin:8px 0 8px 20px;">'
+            + '<li><strong>防抖 (Debounce)</strong> — <span class="fake-text">频繁触发时只执行最后一次</span><span class="novel-text">就像积蓄灵力，不出手则已，一出手必中</span></li>'
+            + '<li><strong>节流 (Throttle)</strong> — <span class="fake-text">固定时间间隔内只执行一次</span><span class="novel-text">好比心法运转的周天循环，稳扎稳打，一步一个脚印</span></li>'
+            + '</ul>';
+        html2 += '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;"><span style="color:#d73a49;">function</span> <span style="color:#6f42c1;">throttle</span>(fn, interval) {\n    <span style="color:#d73a49;">let</span> lastTime = <span style="color:#005cc5;">0</span>;\n    <span style="color:#d73a49;">return function</span>(...args) {\n        <span style="color:#d73a49;">const</span> now = Date.now();\n        <span style="color:#d73a49;">if</span> (now - lastTime >= interval) {\n            lastTime = now;\n            fn.apply(<span style="color:#005cc5;">this</span>, args);\n        }\n    };\n}</pre>';
+        html2 += `<p><span class="fake-text">实际项目中建议直接使用 Lodash 提供的成熟实现。</span><span class="novel-text">少年轻轻抚摸着手中那柄锈迹斑斑的铁剑，剑身上隐隐有符文浮现。"总有一天，"他喃喃道，"我也要像传说中的剑仙一样，一剑可破万法。"</span></p>`;
+
+        addMessageHTML('assistant', html2, time);
+        messages.push({ role: 'assistant', content: '节流回复（含小说）' });
+
+        // 纯工作回复
+        addMessage('assistant', [
+            '总结一下两者的适用场景：',
+            '• <b>搜索框输入</b> → 防抖<br/>• <b>窗口 resize</b> → 节流<br/>• <b>按钮防重复点击</b> → 防抖<br/>• <b>滚动加载更多</b> → 节流',
+            '需要我再写个实例 Demo 吗？'
+        ], time);
+        messages.push({ role: 'assistant', content: '总结' });
 
         scrollToBottom();
     }
 
     // ===== 消息渲染 =====
-    function createMessage(role, bubbleEl, time) {
-        const msg = document.createElement('div');
-        msg.className = 'msg ' + role;
-
-        const avatar = document.createElement('div');
-        avatar.className = 'avatar';
-        avatar.textContent = role === 'assistant' ? '✦' : '👤';
-
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'display:flex;flex-direction:column;';
-
-        bubbleEl.className = 'bubble';
-
-        const timeEl = document.createElement('div');
-        timeEl.className = 'time';
-        timeEl.textContent = time;
-
-        // 组合
-        const isUser = role === 'user';
-        if (isUser) {
-            msg.appendChild(wrapper);
-            wrapper.appendChild(bubbleEl);
-            wrapper.appendChild(timeEl);
-            msg.appendChild(avatar);
-        } else {
-            msg.appendChild(avatar);
-            wrapper.appendChild(bubbleEl);
-            wrapper.appendChild(timeEl);
-            msg.appendChild(wrapper);
-        }
-
-        return msg;
-    }
-
-    function createBubble(role, paragraphs) {
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        paragraphs.forEach(p => {
-            const para = document.createElement('p');
-            para.innerHTML = p;
-            bubble.appendChild(para);
-        });
-        return bubble;
-    }
-
     function addMessage(role, paragraphs, time) {
         if (welcomeMsg) welcomeMsg.style.display = 'none';
         const bubble = document.createElement('div');
@@ -577,22 +660,17 @@
         if (welcomeMsg) welcomeMsg.style.display = 'none';
         const msg = document.createElement('div');
         msg.className = 'msg ' + role;
-
         const avatar = document.createElement('div');
         avatar.className = 'avatar';
         avatar.textContent = role === 'assistant' ? '✦' : '👤';
-
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'display:flex;flex-direction:column;';
-
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
         bubble.innerHTML = html;
-
         const timeEl = document.createElement('div');
         timeEl.className = 'time';
         timeEl.textContent = time || getTime();
-
         if (role === 'user') {
             msg.appendChild(wrapper);
             wrapper.appendChild(bubble);
@@ -604,8 +682,34 @@
             wrapper.appendChild(timeEl);
             msg.appendChild(wrapper);
         }
-
         chatInner.appendChild(msg);
+        return msg;
+    }
+
+    function createMessage(role, bubbleEl, time) {
+        const msg = document.createElement('div');
+        msg.className = 'msg ' + role;
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = role === 'assistant' ? '✦' : '👤';
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'display:flex;flex-direction:column;';
+        bubbleEl.className = 'bubble';
+        const timeEl = document.createElement('div');
+        timeEl.className = 'time';
+        timeEl.textContent = time;
+        const isUser = role === 'user';
+        if (isUser) {
+            msg.appendChild(wrapper);
+            wrapper.appendChild(bubbleEl);
+            wrapper.appendChild(timeEl);
+            msg.appendChild(avatar);
+        } else {
+            msg.appendChild(avatar);
+            wrapper.appendChild(bubbleEl);
+            wrapper.appendChild(timeEl);
+            msg.appendChild(wrapper);
+        }
         return msg;
     }
 
@@ -614,81 +718,56 @@
         return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
     }
 
-    // ===== 注入小说内容到 AI 回复 =====
+    // ===== 注入小说到 AI 回复 =====
     function injectNovel(html) {
-        // 在合适的段落末尾注入小说内容
         const paragraphs = html.split('</p>');
         if (paragraphs.length < 2) return html;
-
-        // 选一个非代码的段落
         const candidates = [];
         paragraphs.forEach((p, i) => {
             if (!p.includes('<pre') && p.trim().length > 10) {
                 candidates.push(i);
             }
         });
-
         if (candidates.length > 0) {
-            // 随机选 1-2 个位置注入
             const count = Math.min(candidates.length, 1 + Math.floor(Math.random() * 2));
             const shuffled = [...candidates].sort(() => Math.random() - 0.5);
             for (let i = 0; i < count; i++) {
                 const idx = shuffled[i];
                 const novel = NOVEL_POOL[Math.floor(Math.random() * NOVEL_POOL.length)];
-                const content = paragraphs[idx];
-                // 在段落末尾、</p> 之前插入小说 span
-                paragraphs[idx] = content + `<span class="novel-text">${novel}</span>`;
+                paragraphs[idx] = paragraphs[idx] + `<span class="novel-text">${novel}</span>`;
             }
         }
-
         return paragraphs.join('</p>');
     }
 
     // ===== 调用 DeepSeek API =====
     async function sendMessage(userText) {
         if (!apiKey || isLoading) return;
-
         isLoading = true;
         inputBox.disabled = true;
         sendBtn.disabled = true;
         sendBtn.textContent = '⋯';
 
-        // 添加用户消息
         const time = getTime();
         addMessage('user', [userText], time);
         messages.push({ role: 'user', content: userText });
         scrollToBottom();
 
-        // 显示打字动画
         const typingMsg = document.createElement('div');
         typingMsg.className = 'msg assistant typing-msg';
-        typingMsg.innerHTML = `
-            <div class="avatar">✦</div>
-            <div class="bubble">
-                <div class="typing"><span></span><span></span><span></span></div>
-            </div>
-        `;
+        typingMsg.innerHTML = '<div class="avatar">✦</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
         chatInner.appendChild(typingMsg);
         scrollToBottom();
 
         try {
-            // 构建消息历史
-            const apiMessages = messages.map(m => ({
-                role: m.role,
-                content: m.content
-            }));
-
-            // 系统提示
-            apiMessages.unshift({
-                role: 'system',
-                content: '你是一个专业的AI工作助手，回答技术问题、写代码、提供建议。回答简洁专业，必要时带示例。'
-            });
+            const apiMessages = messages.map(m => ({ role: m.role, content: m.content }));
+            apiMessages.unshift({ role: 'system', content: '你是一个专业的AI工作助手，回答技术问题、写代码、提供建议。回答简洁专业，必要时带示例。' });
 
             const response = await fetch('https://api.deepseek.com/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + apiKey
+                    'Authorization': '***' + apiKey
                 },
                 body: JSON.stringify({
                     model: model,
@@ -699,7 +778,6 @@
                 })
             });
 
-            // 移除打字动画
             typingMsg.remove();
 
             if (!response.ok) {
@@ -713,7 +791,6 @@
             const data = await response.json();
             let reply = data.choices?.[0]?.message?.content || '（无回复）';
 
-            // 将 Markdown 中的代码块转为 HTML
             reply = reply
                 .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
                     return `<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:'SF Mono','Consolas',monospace;overflow-x:auto;line-height:1.6;">${escapeHtml(code)}</pre>`;
@@ -722,12 +799,8 @@
                 .replace(/\n\n/g, '</p><p>')
                 .replace(/\n/g, '<br/>');
 
-            // 注入小说内容
             reply = injectNovel(reply);
-
-            // 包裹成段落
             const finalHtml = `<p>${reply}</p>`;
-
             addMessageHTML('assistant', finalHtml, getTime());
             messages.push({ role: 'assistant', content: data.choices?.[0]?.message?.content || '' });
 
@@ -750,9 +823,7 @@
     }
 
     function scrollToBottom() {
-        setTimeout(() => {
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }, 50);
+        setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 50);
     }
 
     // ===== 界面控制 =====
@@ -762,77 +833,75 @@
         if (enabled) inputBox.focus();
     }
 
-    function updateStatusBar() {
-        if (apiKey) {
-            statusDot.style.background = '#52c41a';
-            statusText.textContent = '已就绪';
-            modelDisplay.textContent = model === 'deepseek-chat' ? 'DeepSeek Chat' : 'DeepSeek Reasoner';
-        } else {
-            statusDot.style.background = '#ff4d4f';
-            statusText.textContent = '未配置';
-            modelDisplay.textContent = '-';
-        }
-    }
-
     // ===== 事件绑定 =====
-
-    // 设置按钮
     settingsBtn.addEventListener('click', () => {
         apiKeyInput.value = apiKey;
         modelSelect.value = model;
         modalStatus.textContent = '';
+        modeButtons.forEach(b => {
+            b.classList.toggle('active', b.dataset.mode === currentMode);
+        });
+        apiSection.classList.toggle('show', currentMode === 'api');
         modalOverlay.classList.add('show');
     });
 
-    modalCancel.addEventListener('click', () => {
-        modalOverlay.classList.remove('show');
-    });
-
+    modalCancel.addEventListener('click', () => modalOverlay.classList.remove('show'));
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) modalOverlay.classList.remove('show');
     });
 
     modalSave.addEventListener('click', () => {
-        const newKey = apiKeyInput.value.trim();
-        const newModel = modelSelect.value;
+        const activeMode = document.querySelector('.mode-switch button.active');
+        const newMode = activeMode ? activeMode.dataset.mode : 'offline';
 
-        if (!newKey) {
-            modalStatus.className = 'status-msg err';
-            modalStatus.textContent = '请输入 API Key';
-            return;
+        if (newMode === 'api') {
+            const newKey = apiKeyInput.value.trim();
+            const newModel = modelSelect.value;
+            if (!newKey) {
+                modalStatus.className = 'status-msg err';
+                modalStatus.textContent = '请输入 API Key';
+                return;
+            }
+            if (!newKey.startsWith('sk-')) {
+                modalStatus.className = 'status-msg err';
+                modalStatus.textContent = 'API Key 格式不对，应该以 sk- 开头';
+                return;
+            }
+            apiKey = newKey;
+            model = newModel;
+            localStorage.setItem('deepseek_key', apiKey);
+            localStorage.setItem('deepseek_model', model);
         }
 
-        if (!newKey.startsWith('sk-')) {
-            modalStatus.className = 'status-msg err';
-            modalStatus.textContent = 'API Key 格式不对，应该以 sk- 开头';
-            return;
-        }
-
-        apiKey = newKey;
-        model = newModel;
-        localStorage.setItem('deepseek_key', apiKey);
-        localStorage.setItem('deepseek_model', model);
+        const modeChanged = currentMode !== newMode;
+        currentMode = newMode;
+        localStorage.setItem('moyu_mode', currentMode);
 
         modalStatus.className = 'status-msg ok';
         modalStatus.textContent = '✅ 已保存！';
 
-        enableChat(true);
-        updateStatusBar();
-
-        // 如果是第一次配置，添加欢迎消息
-        if (messages.length === 0) {
-            addWelcomeMessages();
-        }
-
         setTimeout(() => {
             modalOverlay.classList.remove('show');
-        }, 800);
+            if (modeChanged) {
+                // 清空对话，重新加载
+                chatInner.innerHTML = '';
+                welcomeMsg.style.display = 'block';
+                welcomeMsg.textContent = '正在切换模式...';
+                messages = [];
+                offlineLoaded = false;
+                applyMode();
+                welcomeMsg.textContent = currentMode === 'offline'
+                    ? '🎭 离线摸鱼版 — 按空格看小说'
+                    : '🤖 在线 AI 版 — 配置好 Key 后开始聊天';
+            } else {
+                applyMode();
+            }
+        }, 600);
     });
 
-    // 发送
     sendBtn.addEventListener('click', () => {
         const text = inputBox.value.trim();
-        if (text && !isLoading) {
+        if (text && !isLoading && currentMode === 'api') {
             inputBox.value = '';
             inputBox.style.height = 'auto';
             sendMessage(text);
@@ -871,9 +940,7 @@
             document.body.classList.remove('novel-mode');
             novelActive = false;
             clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => {
-                indicator.classList.remove('show');
-            }, 1200);
+            indicatorTimeout = setTimeout(() => indicator.classList.remove('show'), 1200);
         }
     });
 
@@ -885,7 +952,6 @@
         }
     });
 
-    // 点击空白安全
     document.addEventListener('click', () => {
         document.body.classList.remove('novel-mode');
         novelActive = false;
