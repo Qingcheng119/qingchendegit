@@ -750,10 +750,10 @@
         timeEl.className = 'time';
         timeEl.textContent = time || getTime();
         if (role === 'user') {
-            msg.appendChild(wrapper);
+            msg.appendChild(avatar);
             wrapper.appendChild(bubble);
             wrapper.appendChild(timeEl);
-            msg.appendChild(avatar);
+            msg.appendChild(wrapper);
         } else {
             msg.appendChild(avatar);
             wrapper.appendChild(bubble);
@@ -778,10 +778,10 @@
         timeEl.textContent = time;
         const isUser = role === 'user';
         if (isUser) {
-            msg.appendChild(wrapper);
+            msg.appendChild(avatar);
             wrapper.appendChild(bubbleEl);
             wrapper.appendChild(timeEl);
-            msg.appendChild(avatar);
+            msg.appendChild(wrapper);
         } else {
             msg.appendChild(avatar);
             wrapper.appendChild(bubbleEl);
