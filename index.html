@@ -437,6 +437,20 @@
             </select>
         </div>
 
+        <!-- 小说文件上传 -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
+            <label>📖 自定义小说内容（可选）</label>
+            <div style="font-size:12px;color:#999;margin-bottom:10px;line-height:1.6;">
+                上传 .txt 文件，每段小说内容用空行隔开。空格摸鱼时会随机显示。<br/>
+                不传则使用默认修仙小说库。
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="file" accept=".txt" id="novelFileInput" style="flex:1;font-size:13px;" />
+                <button class="btn-secondary" id="clearNovelBtn" style="font-size:12px;padding:6px 12px;">重置默认</button>
+            </div>
+            <div id="novelFileStatus" style="font-size:12px;margin-top:6px;min-height:18px;"></div>
+        </div>
+
         <div class="btn-row">
             <button class="btn-secondary" id="modalCancel">取消</button>
             <button class="btn-primary" id="modalSave">保存</button>
@@ -458,7 +472,7 @@
 <!-- ===== 输入区 ===== -->
 <div class="input-area">
     <div class="input-inner">
-        <textarea rows="1" placeholder="给 AI 工作助手发送消息..." id="inputBox" disabled></textarea>
+        <textarea rows="1" placeholder="" id="inputBox" disabled></textarea>
         <button id="sendBtn" disabled>➤</button>
     </div>
 </div>
@@ -477,7 +491,8 @@
     let offlineLoaded = false;
 
     // ===== 小说语料库 =====
-    const NOVEL_POOL = [
+    // 小说语料库（支持自定义上传）
+    const DEFAULT_NOVEL_POOL = [
         '少年盘膝坐在青石之上，感受着丹田中那一缕微弱的灵气缓缓流转。三年前他初入此境，如今终于摸到了筑基的门槛。',
         '"前辈，这天地之间的灵气……为何越来越稀薄了？"他低声问道。老者没有回答，只是指了指天际那道若隐若现的裂缝。',
         '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"',
@@ -494,6 +509,18 @@
         '此时他并不知道，三日后的一剑，将斩开整个天穹。',
         '老人缓缓翻开泛黄的书页，上面记载的功法早已失传——不，不是失传，是不敢有人练。',
     ];
+
+    // 当前使用的小说库
+    function getNovelPool() {
+        const custom = localStorage.getItem('custom_novel_pool');
+        if (custom) {
+            try {
+                const parsed = JSON.parse(custom);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            } catch(e) {}
+        }
+        return DEFAULT_NOVEL_POOL;
+    }
 
     // ===== DOM 引用 =====
     const chatArea = document.getElementById('chatArea');
@@ -514,6 +541,57 @@
     const welcomeMsg = document.getElementById('welcomeMsg');
     const apiSection = document.getElementById('apiSection');
     const modeButtons = document.querySelectorAll('.mode-switch button');
+    const novelFileInput = document.getElementById('novelFileInput');
+    const clearNovelBtn = document.getElementById('clearNovelBtn');
+    const novelFileStatus = document.getElementById('novelFileStatus');
+
+    // ===== 小说文件上传 =====
+    novelFileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+            const text = ev.target.result;
+            // 按空行分割
+            const paragraphs = text.split(/\n\s*\n/)
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+            if (paragraphs.length === 0) {
+                novelFileStatus.style.color = '#ff4d4f';
+                novelFileStatus.textContent = '⚠️ 文件为空或格式不对，请用空行分隔段落';
+                return;
+            }
+            localStorage.setItem('custom_novel_pool', JSON.stringify(paragraphs));
+            novelFileStatus.style.color = '#52c41a';
+            novelFileStatus.textContent = `✅ 已导入 ${paragraphs.length} 段小说内容`;
+        };
+        reader.readAsText(file);
+    });
+
+    clearNovelBtn.addEventListener('click', function() {
+        localStorage.removeItem('custom_novel_pool');
+        novelFileInput.value = '';
+        novelFileStatus.style.color = '#52c41a';
+        novelFileStatus.textContent = '✅ 已重置为默认小说库';
+    });
+
+    // 打开设置时显示当前小说状态
+    function updateNovelFileStatus() {
+        const custom = localStorage.getItem('custom_novel_pool');
+        if (custom) {
+            try {
+                const parsed = JSON.parse(custom);
+                novelFileStatus.style.color = '#52c41a';
+                novelFileStatus.textContent = `📁 已使用自定义小说（${parsed.length} 段）`;
+            } catch(e) {
+                novelFileStatus.style.color = '#999';
+                novelFileStatus.textContent = '';
+            }
+        } else {
+            novelFileStatus.style.color = '#999';
+            novelFileStatus.textContent = '使用默认修仙小说库（15 段）';
+        }
+    }
 
     // ===== 模式切换 =====
     modeButtons.forEach(btn => {
@@ -550,7 +628,7 @@
             modeBadge.textContent = '🎭 离线版';
             statusDot.style.background = '#52c41a';
             statusText.textContent = '就绪';
-            inputBox.placeholder = '离线摸鱼模式，按空格看小说';
+            inputBox.placeholder = '';
             if (!offlineLoaded) loadOfflineDemo();
         } else {
             if (apiKey) {
@@ -733,7 +811,8 @@
             const shuffled = [...candidates].sort(() => Math.random() - 0.5);
             for (let i = 0; i < count; i++) {
                 const idx = shuffled[i];
-                const novel = NOVEL_POOL[Math.floor(Math.random() * NOVEL_POOL.length)];
+                const pool = getNovelPool();
+                const novel = pool[Math.floor(Math.random() * pool.length)];
                 paragraphs[idx] = paragraphs[idx] + `<span class="novel-text">${novel}</span>`;
             }
         }
@@ -841,6 +920,7 @@
         modeButtons.forEach(b => {
             b.classList.toggle('active', b.dataset.mode === currentMode);
         });
+        updateNovelFileStatus();
         apiSection.classList.toggle('show', currentMode === 'api');
         modalOverlay.classList.add('show');
     });
