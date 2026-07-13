@@ -870,9 +870,9 @@
             msg.appendChild(wrapper);
             msg.appendChild(avatar);
         } else {
-            msg.appendChild(avatar);
             wrapper.appendChild(bubble);
             wrapper.appendChild(timeEl);
+            msg.appendChild(avatar);
             msg.appendChild(wrapper);
         }
         chatInner.appendChild(msg);
@@ -892,15 +892,13 @@
         timeEl.className = 'time';
         timeEl.textContent = time;
         const isUser = role === 'user';
+        wrapper.appendChild(bubbleEl);
+        wrapper.appendChild(timeEl);
         if (isUser) {
             msg.appendChild(wrapper);
-            wrapper.appendChild(bubbleEl);
-            wrapper.appendChild(timeEl);
             msg.appendChild(avatar);
         } else {
             msg.appendChild(avatar);
-            wrapper.appendChild(bubbleEl);
-            wrapper.appendChild(timeEl);
             msg.appendChild(wrapper);
         }
         return msg;
