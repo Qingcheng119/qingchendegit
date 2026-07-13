@@ -75,6 +75,63 @@
         }
         .topbar .right .settings-btn:hover { color: #333; }
 
+        /* ===== 侧边栏 ===== */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 260px;
+            background: #fafafa;
+            border-right: 1px solid #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: width .25s ease, opacity .25s ease;
+            overflow: hidden;
+        }
+        .sidebar.collapsed {
+            width: 0;
+            opacity: 0;
+            border-right: none;
+        }
+        .sidebar .s-header {
+            padding: 16px 16px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .sidebar .s-header .s-title { font-size: 14px; font-weight: 600; color: #333; }
+        .sidebar .s-header .collapse-btn {
+            background: none; border: none; cursor: pointer; font-size: 14px; color: #999;
+            padding: 4px 8px; border-radius: 6px; transition: all .2s;
+        }
+        .sidebar .s-header .collapse-btn:hover { background: #eee; color: #333; }
+        .sidebar .s-new-btn {
+            margin: 0 16px 12px; padding: 8px 0;
+            border: 1px solid #ddd; border-radius: 8px; background: #fff;
+            cursor: pointer; font-size: 13px; color: #555; text-align: center;
+            transition: all .2s; flex-shrink: 0;
+        }
+        .sidebar .s-new-btn:hover { background: #f5f5f5; border-color: #ccc; }
+        .sidebar .s-list { flex: 1; overflow-y: auto; padding: 0 12px; }
+        .sidebar .s-item {
+            padding: 10px 12px; border-radius: 8px; font-size: 13px; color: #555;
+            cursor: pointer; transition: background .15s; margin-bottom: 2px;
+        }
+        .sidebar .s-item:hover { background: #eee; }
+        .sidebar .s-item.active { background: #e8f4fd; color: #4facfe; font-weight: 500; }
+        .sidebar .s-item .s-item-preview {
+            font-size: 11px; color: #bbb; margin-top: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .sidebar .s-footer { padding: 12px 16px; border-top: 1px solid #eee; font-size: 12px; color: #bbb; flex-shrink: 0; }
+        .sidebar-toggle { background: none; border: none; cursor: pointer; font-size: 18px; color: #888; padding: 4px 6px; border-radius: 6px; margin-right: 6px; transition: all .2s; }
+        .sidebar-toggle:hover { background: #f0f0f0; color: #333; }
+        .content-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
         /* ===== 设置弹窗 ===== */
         .modal-overlay {
             display: none;
@@ -401,6 +458,7 @@
 <header class="topbar">
     <div class="logo">
         <div class="icon">✦</div>
+        <button class="sidebar-toggle" id="sidebarToggle" title="切换侧边栏">☰</button>
         <span>AI 工作助手</span>
     </div>
     <div class="right">
@@ -459,21 +517,56 @@
     </div>
 </div>
 
-<!-- ===== 对话区 ===== -->
-<div class="chat-area" id="chatArea">
-    <div class="chat-inner" id="chatInner">
-        <!-- 消息会通过 JS 动态渲染 -->
-        <div style="text-align:center;color:#bbb;font-size:13px;padding:40px 0;" id="welcomeMsg">
-            点击右上角 ⚙️ 设置，选择要使用的模式
+<!-- ===== 主布局 ===== -->
+<div class="main-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="s-header">
+            <span class="s-title">📋 对话历史</span>
+            <button class="collapse-btn" id="collapseBtn" title="收起">◀</button>
         </div>
-    </div>
-</div>
-
-<!-- ===== 输入区 ===== -->
-<div class="input-area">
-    <div class="input-inner">
-        <textarea rows="1" placeholder="" id="inputBox" disabled></textarea>
-        <button id="sendBtn" disabled>➤</button>
+        <button class="s-new-btn" id="newChatBtn">➕ 新对话</button>
+        <div class="s-list">
+            <div class="s-item active">
+                <div>JS 防抖与节流讨论</div>
+                <div class="s-item-preview">深入理解闭包和作用域链...</div>
+            </div>
+            <div class="s-item">
+                <div>React Hooks 入门</div>
+                <div class="s-item-preview">useState、useEffect 的使用技巧...</div>
+            </div>
+            <div class="s-item">
+                <div>CSS 布局方案对比</div>
+                <div class="s-item-preview">Flexbox vs Grid 实战对比...</div>
+            </div>
+            <div class="s-item">
+                <div>Node.js 性能优化</div>
+                <div class="s-item-preview">事件循环、内存泄漏排查方法...</div>
+            </div>
+            <div class="s-item">
+                <div>TypeScript 类型体操</div>
+                <div class="s-item-preview">conditional types 和 infer 的妙用...</div>
+            </div>
+            <div class="s-item">
+                <div>算法：动态规划</div>
+                <div class="s-item-preview">背包问题、最长子序列详解...</div>
+            </div>
+        </div>
+        <div class="s-footer">✦ AI 工作助手 v3.0</div>
+    </aside>
+    <div class="content-wrapper">
+        <div class="chat-area" id="chatArea">
+            <div class="chat-inner" id="chatInner">
+                <div style="text-align:center;color:#bbb;font-size:13px;padding:40px 0;" id="welcomeMsg">
+                    点击右上角 ⚙️ 设置，选择要使用的模式
+                </div>
+            </div>
+        </div>
+        <div class="input-area">
+            <div class="input-inner">
+                <textarea rows="1" placeholder="" id="inputBox" disabled></textarea>
+                <button id="sendBtn" disabled>➤</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -544,6 +637,30 @@
     const novelFileInput = document.getElementById('novelFileInput');
     const clearNovelBtn = document.getElementById('clearNovelBtn');
     const novelFileStatus = document.getElementById('novelFileStatus');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const collapseBtn = document.getElementById('collapseBtn');
+
+    // ===== 侧边栏折叠 =====
+    let sidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+    if (sidebarCollapsed) sidebar.classList.add('collapsed');
+    function toggleSidebar() {
+        sidebarCollapsed = !sidebarCollapsed;
+        sidebar.classList.toggle('collapsed', sidebarCollapsed);
+        localStorage.setItem('sidebar_collapsed', sidebarCollapsed);
+    }
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    collapseBtn.addEventListener('click', toggleSidebar);
+    document.getElementById('newChatBtn').addEventListener('click', function() {
+        if (currentMode === 'offline') {
+            chatInner.innerHTML = '';
+            messages = [];
+            offlineLoaded = false;
+            welcomeMsg.style.display = 'block';
+            welcomeMsg.textContent = '🎭 离线摸鱼版 — 按空格看小说';
+            loadOfflineDemo();
+        }
+    });
 
     // ===== 小说文件上传 =====
     novelFileInput.addEventListener('change', function(e) {
