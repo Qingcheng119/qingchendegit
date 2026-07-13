@@ -428,7 +428,7 @@
             position: fixed;
             bottom: 100px;
             right: 24px;
-            background: #8b5cf6;
+            background: #888;
             color: #fff;
             padding: 8px 18px;
             border-radius: 20px;
@@ -438,7 +438,7 @@
             pointer-events: none;
             z-index: 200;
             user-select: none;
-            box-shadow: 0 2px 12px rgba(139,92,246,.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,.2);
         }
         .mode-indicator.show { opacity: .9; }
 
@@ -586,7 +586,7 @@
 </div>
 
 <!-- ===== 模式指示器 ===== -->
-<div class="mode-indicator" id="indicator">📖 摸鱼模式</div>
+<div class="mode-indicator" id="indicator">🔍 检查模式</div>
 
 <script>
 (function() {
@@ -1065,7 +1065,7 @@
                 // 翻页归零，只显示第一条小说
                 currentNovelPage = 0;
                 showNovelPage(0);
-                indicator.textContent = '📖 摸鱼模式 1/' + document.querySelectorAll('.novel-text').length;
+                indicator.textContent = '🔍 检查模式 1/' + document.querySelectorAll('.novel-text').length;
                 indicator.classList.add('show');
                 setTimeout(() => indicator.classList.remove('show'), 2000);
             } else {
@@ -1096,7 +1096,7 @@
             }
             showNovelPage(currentNovelPage);
             // 显示页码
-            indicator.textContent = '📖 翻页 ' + (currentNovelPage + 1) + '/' + allNovel.length;
+            indicator.textContent = '🔍 检查中 ' + (currentNovelPage + 1) + '/' + allNovel.length;
             indicator.classList.add('show');
             clearTimeout(indicator._timer);
             indicator._timer = setTimeout(() => indicator.classList.remove('show'), 1500);
