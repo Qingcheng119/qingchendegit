@@ -1055,15 +1055,60 @@
     });
 
     document.addEventListener('keydown', function(e) {
-        if (e.code === 'Space' && document.activeElement !== inputBox) {
+        const inInput = document.activeElement === inputBox;
+
+        // 空格切换摸鱼模式
+        if (e.code === 'Space' && !inInput) {
             e.preventDefault();
             document.body.classList.toggle('novel-mode');
             if (document.body.classList.contains('novel-mode')) {
+                // 翻页归零，只显示第一条小说
+                currentNovelPage = 0;
+                showNovelPage(0);
+                indicator.textContent = '📖 摸鱼模式 1/' + document.querySelectorAll('.novel-text').length;
                 indicator.classList.add('show');
                 setTimeout(() => indicator.classList.remove('show'), 2000);
+            } else {
+                resetNovelDisplay();
             }
         }
+
+        // 左右方向键翻页（仅摸鱼模式下）
+        if ((e.code === 'ArrowRight' || e.code === 'ArrowLeft') && document.body.classList.contains('novel-mode')) {
+            e.preventDefault();
+            const allNovel = document.querySelectorAll('.novel-text');
+            if (allNovel.length === 0) return;
+            if (e.code === 'ArrowRight') {
+                currentNovelPage = (currentNovelPage + 1) % allNovel.length;
+            } else {
+                currentNovelPage = (currentNovelPage - 1 + allNovel.length) % allNovel.length;
+            }
+            showNovelPage(currentNovelPage);
+            // 显示页码
+            indicator.textContent = '📖 翻页 ' + (currentNovelPage + 1) + '/' + allNovel.length;
+            indicator.classList.add('show');
+            clearTimeout(indicator._timer);
+            indicator._timer = setTimeout(() => indicator.classList.remove('show'), 1500);
+            // 回到顶部
+            chatArea.scrollTop = 0;
+        }
     });
+
+    let currentNovelPage = 0;
+
+    function showNovelPage(index) {
+        const allNovel = document.querySelectorAll('.novel-text');
+        allNovel.forEach(function(el, i) {
+            el.style.display = i === index ? '' : 'none';
+        });
+    }
+
+    function resetNovelDisplay() {
+        const allNovel = document.querySelectorAll('.novel-text');
+        allNovel.forEach(function(el) {
+            el.style.display = '';
+        });
+    }
 
     // 设置弹窗
     settingsBtn.addEventListener('click', function() {
