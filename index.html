@@ -271,9 +271,20 @@
         }
         .msg.user .avatar { display: none; }
 
-        .msg .bubble {
+        /* 助手气泡：固定宽度 */
+        .msg.assistant .bubble {
             width: 680px;
             max-width: 680px;
+        }
+
+        /* 用户气泡：自适应宽度 */
+        .msg.user .bubble {
+            width: auto;
+            max-width: 680px;
+            min-width: 60px;
+        }
+
+        .msg .bubble {
             padding: 12px 16px;
             border-radius: 16px;
             font-size: 14px;
@@ -612,7 +623,7 @@
         '就像少年顺着山间的溪流逆行而上，每一道弯都是一个境界，每一座峰都是一重天。',
         '就像青城山上那座藏经阁，你进去的时候拿了哪一层的心法，往后就只能练那一层的功夫——换不了，悔不了。',
         '当年那位老祖之所以坐化，就是因为体内灵力积累过多——不是不够用，是散不出去。老人说到这里叹了口气，端起茶杯抿了一口。',
-        '就像出关的那天清晨，他站在青城山顶，看着云海翻涌。天地之间的灵气好像都在回应他——不是因为他变强了，而是他终于看懂了这方天地的纹理。',
+        '就像出关的那天清晨，他站在青城山顶，看着云海翻涌。天地之间的灵气好像都在回应他——不是因为他变强了，而是他终于看懂了这方天地的规律。',
         '他缓缓收剑入鞘，山谷间的雾气重新聚拢。没人知道方才发生了什么，只有石壁上那道三丈深的剑痕，在月光下泛着幽光。',
         '此时他并不知道，三日后的一剑，将斩开整个天穹。',
         '老人缓缓翻开泛黄的书页，上面记载的功法早已失传——不，不是失传，是不敢有人练。',
@@ -795,7 +806,7 @@
         messages = [];
 
         // 助手欢迎
-        addMessage('assistant', ['你好！我是你的 AI 工作助手。有什么可以帮助你的？', '可以问我技术问题、写代码、整理文档、分析数据，或者讨论项目方案。'], time);
+        addMessage('assistant', ['你好！我是你的 AI 工作助手。有什么可以帮助你的？', '可以问我技术问题、写代码、整理文档、分析数据，或者讨论项目方案。']);
         messages.push({ role: 'assistant', content: '欢迎消息' });
 
         // 用户问题
@@ -806,10 +817,10 @@
         const asstContent = [
             { fake: '好的，这是一个带 <code>immediate</code> 选项的防抖函数：', novel: '少年盘膝坐在青石之上，感受着丹田中那一缕微弱的灵气缓缓流转。三年前他初入此境，如今终于摸到了筑基的门槛。' },
             { fake: '使用方式也很简单，可以直接传入回调函数和延迟时间。', novel: '"前辈，这天地之间的灵气……为何越来越稀薄了？"他低声问道。老者没有回答，只是指了指天际那道若隐若现的裂缝。' },
-            { fake: '如果 <code>immediate</code> 设为 <code>true</code>，会在第一次触发时立即执行，之后在延迟时间内再次触发不会执行。', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"' },
+            { fake: '如果 <code>immediate</code> 设为 <code>true</code>，会在第一次触发时立即执行，之后在延迟时间内再次触发不会执行。', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道。' },
         ];
 
-        let html = '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function debounce(func, wait, immediate) {\n  let timeout;\n  return function(...args) {\n    clearTimeout(timeout);\n    if (immediate) {\n      func.apply(this, args);\n    } else {\n      timeout = setTimeout(() => func.apply(this, args), wait);\n    }\n  };\n}\n\nconst search = debounce((query) => {\n  console.log(\'搜索：\', query);\n}, 300);</pre>';
+        let html = '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function debounce(func, wait, immediate) {\n  let timeout;\n  return function(...args) {\n    clearTimeout(timeout);\n    if (immediate && !timeout) func.apply(this, args);\n    timeout = setTimeout(() => func.apply(this, args), wait);\n  };\n}</pre>';
 
         asstContent.forEach(item => {
             html += `<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`;
@@ -824,7 +835,7 @@
 
         // 第二个含小说回复
         const asst2 = [
-            { fake: '防抖和节流的核心区别：', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"' },
+            { fake: '防抖和节流的核心区别：', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山？"' },
         ];
         let html2 = '';
         asst2.forEach(item => {
@@ -834,8 +845,8 @@
             + '<li><strong>防抖 (Debounce)</strong> — <span class="fake-text">频繁触发时只执行最后一次</span><span class="novel-text">就像积蓄灵力，不出手则已，一出手必中。</span></li>'
             + '<li><strong>节流 (Throttle)</strong> — <span class="fake-text">固定时间间隔内只执行一次</span><span class="novel-text">好比心法运转的周天循环，稳扎稳打，一步一个脚印。</span></li>'
             + '</ul>';
-        html2 += '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function throttle(func, limit) {\n  let inThrottle;\n  return function(...args) {\n    if (!inThrottle) {\n      func.apply(this, args);\n      inThrottle = true;\n      setTimeout(() => inThrottle = false, limit);\n    }\n  };\n}\n\nwindow.addEventListener(\'scroll\', throttle(() => {\n  console.log(\'滚动事件\');\n}, 300));</pre>';
-        html2 += `<p><span class="fake-text">实际项目中建议直接使用 Lodash 提供的成熟实现。</span><span class="novel-text">少年轻轻抚摸着手中那柄锈迹斑斑的铁剑，剑身上隐隐有符文浮现。"总有一天，"他喃喃道，"我也要像传说中的剑仙一样，一剑可破万法。"</span></p>`;
+        html2 += '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function throttle(func, limit) {\n  let inThrottle;\n  return function(...args) {\n    if (!inThrottle) {\n      func.apply(this, args);\n      inThrottle = true;\n      setTimeout(() => inThrottle = false, limit);\n    }\n  };\n}</pre>';
+        html2 += `<p><span class="fake-text">实际项目中建议直接使用 Lodash 提供的成熟实现。</span><span class="novel-text">少年轻轻抚摸着手中那柄锈迹斑斑的铁剑，剑身上隐隐有符文浮现。</span></p>`;
 
         addMessageHTML('assistant', html2, time);
         messages.push({ role: 'assistant', content: '节流回复（含小说）' });
@@ -998,130 +1009,41 @@
             const data = await response.json();
             let reply = data.choices?.[0]?.message?.content || '（无回复）';
 
-            reply = reply
-                .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-                    return `<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:'SF Mono','Consolas',monospace;overflow-x:auto;line-height:1.6;">${code}</pre>`;
-                })
-                .replace(/`([^`]+)`/g, '<code>$1</code>')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/\n/g, '<br/>');
-
-            reply = injectNovel(reply);
-            const finalHtml = `<p>${reply}</p>`;
-            addMessageHTML('assistant', finalHtml, getTime());
-            messages.push({ role: 'assistant', content: data.choices?.[0]?.message?.content || '' });
-
-        } catch (err) {
+            // 注入小说
+            if (currentMode === 'offline' || localStorage.getItem('enable_novel') === 'true') {
+                const htmlReply = reply.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+                reply = injectNovel(htmlReply);
+                addMessageHTML('assistant', reply, getTime());
+            } else {
+                addMessage('assistant', [reply], getTime());
+            }
+            messages.push({ role: 'assistant', content: reply });
+        } catch(e) {
             typingMsg.remove();
-            addMessage('assistant', ['⚠️ 网络错误：' + err.message]);
-            messages.push({ role: 'assistant', content: '[错误] ' + err.message });
+            addMessage('assistant', ['⚠️ 网络错误：' + e.message]);
+            messages.push({ role: 'assistant', content: '[网络错误] ' + e.message });
         } finally {
             isLoading = false;
-            inputBox.disabled = false;
-            sendBtn.disabled = false;
+            inputBox.disabled = currentMode === 'offline';
+            sendBtn.disabled = currentMode === 'offline';
             sendBtn.textContent = '➤';
             scrollToBottom();
         }
     }
 
     // ===== 辅助函数 =====
-    function enableChat(enabled) {
-        inputBox.disabled = !enabled;
-        sendBtn.disabled = !enabled;
+    function enableChat(enable) {
+        inputBox.disabled = !enable;
+        sendBtn.disabled = !enable;
     }
 
     function scrollToBottom() {
-        chatArea.scrollTop = chatArea.scrollHeight;
+        setTimeout(() => {
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }, 0);
     }
 
     // ===== 事件监听 =====
-    sendBtn.addEventListener('click', function() {
-        const text = inputBox.value.trim();
-        if (!text) return;
-        inputBox.value = '';
-        inputBox.style.height = 'auto';
-        sendMessage(text);
-    });
-
-    inputBox.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'Enter' || e.metaKey && e.key === 'Enter') {
-            sendBtn.click();
-        }
-    });
-
-    inputBox.addEventListener('input', function() {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-    });
-
-    document.addEventListener('keydown', function(e) {
-        const inInput = document.activeElement === inputBox;
-
-        // 空格切换摸鱼模式
-        if (e.code === 'Space' && !inInput) {
-            e.preventDefault();
-            document.body.classList.toggle('novel-mode');
-            if (document.body.classList.contains('novel-mode')) {
-                // 翻页归零，只显示第一条小说
-                currentNovelPage = 0;
-                showNovelPage(0);
-                indicator.textContent = '🔍 检查模式 1/' + document.querySelectorAll('.novel-text').length;
-                indicator.classList.add('show');
-                setTimeout(() => indicator.classList.remove('show'), 2000);
-            } else {
-                resetNovelDisplay();
-            }
-        }
-
-        // 左右方向键翻页（仅摸鱼模式下）
-        // 上下方向键滚动页面（仅摸鱼模式下）
-        if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && document.body.classList.contains('novel-mode')) {
-            e.preventDefault();
-            const step = 200;
-            if (e.code === 'ArrowUp') {
-                chatArea.scrollTop = Math.max(0, chatArea.scrollTop - step);
-            } else {
-                chatArea.scrollTop = Math.min(chatArea.scrollHeight, chatArea.scrollTop + step);
-            }
-        }
-
-        if ((e.code === 'ArrowRight' || e.code === 'ArrowLeft') && document.body.classList.contains('novel-mode')) {
-            e.preventDefault();
-            const allNovel = document.querySelectorAll('.novel-text');
-            if (allNovel.length === 0) return;
-            if (e.code === 'ArrowRight') {
-                currentNovelPage = (currentNovelPage + 1) % allNovel.length;
-            } else {
-                currentNovelPage = (currentNovelPage - 1 + allNovel.length) % allNovel.length;
-            }
-            showNovelPage(currentNovelPage);
-            // 显示页码
-            indicator.textContent = '🔍 检查中 ' + (currentNovelPage + 1) + '/' + allNovel.length;
-            indicator.classList.add('show');
-            clearTimeout(indicator._timer);
-            indicator._timer = setTimeout(() => indicator.classList.remove('show'), 1500);
-            // 回到顶部
-            chatArea.scrollTop = 0;
-        }
-    });
-
-    let currentNovelPage = 0;
-
-    function showNovelPage(index) {
-        const allNovel = document.querySelectorAll('.novel-text');
-        allNovel.forEach(function(el, i) {
-            el.style.display = i === index ? '' : 'none';
-        });
-    }
-
-    function resetNovelDisplay() {
-        const allNovel = document.querySelectorAll('.novel-text');
-        allNovel.forEach(function(el) {
-            el.style.display = '';
-        });
-    }
-
-    // 设置弹窗
     settingsBtn.addEventListener('click', function() {
         updateNovelFileStatus();
         modalOverlay.classList.add('show');
@@ -1131,29 +1053,70 @@
         modalOverlay.classList.remove('show');
     });
 
-    modalOverlay.addEventListener('click', function(e) {
-        if (e.target === modalOverlay) {
-            modalOverlay.classList.remove('show');
+    modalSave.addEventListener('click', function() {
+        const newMode = document.querySelector('.mode-switch button.active').dataset.mode;
+        const newKey = apiKeyInput.value.trim();
+        const newModel = modelSelect.value;
+
+        localStorage.setItem('moyu_mode', newMode);
+        localStorage.setItem('deepseek_key', newKey);
+        localStorage.setItem('deepseek_model', newModel);
+
+        currentMode = newMode;
+        apiKey = newKey;
+        model = newModel;
+
+        applyMode();
+        modalOverlay.classList.remove('show');
+
+        modalStatus.textContent = '✅ 设置已保存';
+        modalStatus.classList.add('ok');
+        setTimeout(() => {
+            modalStatus.textContent = '';
+            modalStatus.classList.remove('ok');
+        }, 2000);
+    });
+
+    // 输入框事件
+    inputBox.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (inputBox.value.trim()) {
+                sendMessage(inputBox.value.trim());
+                inputBox.value = '';
+                inputBox.style.height = 'auto';
+            }
         }
     });
 
-    modalSave.addEventListener('click', function() {
-        const mode = document.querySelector('.mode-switch button.active').dataset.mode;
-        apiKey = apiKeyInput.value.trim();
-        model = modelSelect.value;
+    inputBox.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
 
-        currentMode = mode;
-        localStorage.setItem('moyu_mode', mode);
-        localStorage.setItem('deepseek_key', apiKey);
-        localStorage.setItem('deepseek_model', model);
+    sendBtn.addEventListener('click', function() {
+        if (inputBox.value.trim()) {
+            sendMessage(inputBox.value.trim());
+            inputBox.value = '';
+            inputBox.style.height = 'auto';
+        }
+    });
 
-        modalStatus.className = 'status-msg ok';
-        modalStatus.textContent = '✅ 已保存设置';
-        setTimeout(() => {
-            modalStatus.textContent = '';
+    // 空格键事件（离线模式下切换小说显示）
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' && currentMode === 'offline') {
+            e.preventDefault();
+            document.body.classList.toggle('novel-mode');
+            indicator.textContent = document.body.classList.contains('novel-mode') ? '📖 小说模式' : '🔍 工作模式';
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 1500);
+        }
+    });
+
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === this) {
             modalOverlay.classList.remove('show');
-            applyMode();
-        }, 1200);
+        }
     });
 
     // 初始化
