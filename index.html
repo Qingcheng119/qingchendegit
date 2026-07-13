@@ -19,33 +19,34 @@
             position: fixed;
             top: 0; left: 0; right: 0;
             height: 50px;
-            background: #e44033;
+            background: #fff;
             display: flex;
             align-items: center;
             padding: 0 24px;
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,.12);
+            border-bottom: 1px solid #e9ecef;
         }
         .topbar .logo {
-            color: #fff;
+            color: #333;
             font-size: 20px;
             font-weight: 700;
             margin-right: 32px;
         }
-        .topbar .logo span { font-weight: 400; font-size: 14px; opacity: .8; margin-left: 8px; }
+        .topbar .logo span { font-weight: 400; font-size: 14px; opacity: .7; margin-left: 8px; }
         .topbar .nav a {
-            color: rgba(255,255,255,.85);
+            color: #666;
             text-decoration: none;
             font-size: 14px;
             margin-right: 20px;
             transition: color .2s;
         }
-        .topbar .nav a:hover { color: #fff; }
+        .topbar .nav a:hover { color: #e44033; }
         .topbar .search-box {
             margin-left: auto;
             display: flex;
             align-items: center;
-            background: rgba(255,255,255,.2);
+            background: #f4f5f6;
             border-radius: 4px;
             padding: 4px 12px;
         }
@@ -53,11 +54,11 @@
             background: none;
             border: none;
             outline: none;
-            color: #fff;
+            color: #666;
             font-size: 13px;
             width: 180px;
         }
-        .topbar .search-box input::placeholder { color: rgba(255,255,255,.6); }
+        .topbar .search-box input::placeholder { color: #999; }
 
         /* ===== 文章容器 ===== */
         .container {
@@ -376,7 +377,7 @@ console.log(counter()); <span class="comment">// 2</span>
 console.log(counter()); <span class="comment">// 3</span></code></pre>
 
         <blockquote>
-            <p>💡 <strong>重点：</strong>闭包不是"创建"出来的，而是 JavaScript 作用域规则的自然产物。你每次写回调函数、事件处理器、定时器，都在用闭包。</p>
+            <p>💡 <strong>重点：</strong>闭包不是"创建"出来的，而是 JavaScript 作用域规则的自然产物。你每次写回调函数、事件处理器、定时器，都在用闭包[...]
         </blockquote>
 
         <h2>三、闭包的经典应用场景</h2>
