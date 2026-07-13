@@ -1107,11 +1107,59 @@
         if (e.code === 'Space' && currentMode === 'offline') {
             e.preventDefault();
             document.body.classList.toggle('novel-mode');
-            indicator.textContent = document.body.classList.contains('novel-mode') ? '📖 小说模式' : '🔍 工作模式';
+            if (document.body.classList.contains('novel-mode')) {
+                currentNovelPage = 0;
+                showNovelPage(0);
+                const total = document.querySelectorAll('.novel-text').length;
+                indicator.textContent = '🔍 检查模式 1/' + total;
+            } else {
+                resetNovelDisplay();
+                indicator.textContent = '🔍 工作模式';
+            }
             indicator.classList.add('show');
             setTimeout(() => indicator.classList.remove('show'), 1500);
         }
+        // 左右翻页
+        if ((e.code === 'ArrowRight' || e.code === 'ArrowLeft') && document.body.classList.contains('novel-mode')) {
+            e.preventDefault();
+            const allNovel = document.querySelectorAll('.novel-text');
+            if (allNovel.length === 0) return;
+            if (e.code === 'ArrowRight') {
+                currentNovelPage = (currentNovelPage + 1) % allNovel.length;
+            } else {
+                currentNovelPage = (currentNovelPage - 1 + allNovel.length) % allNovel.length;
+            }
+            showNovelPage(currentNovelPage);
+            indicator.textContent = '🔍 检查中 ' + (currentNovelPage + 1) + '/' + allNovel.length;
+            indicator.classList.add('show');
+            clearTimeout(indicator._timer);
+            indicator._timer = setTimeout(() => indicator.classList.remove('show'), 1500);
+            chatArea.scrollTop = 0;
+        }
+        // 上下滚动
+        if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && document.body.classList.contains('novel-mode')) {
+            e.preventDefault();
+            const step = 200;
+            if (e.code === 'ArrowUp') {
+                chatArea.scrollTop = Math.max(0, chatArea.scrollTop - step);
+            } else {
+                chatArea.scrollTop = Math.min(chatArea.scrollHeight, chatArea.scrollTop + step);
+            }
+        }
     });
+
+    let currentNovelPage = 0;
+    function showNovelPage(index) {
+        const allNovel = document.querySelectorAll('.novel-text');
+        allNovel.forEach(function(el, i) {
+            el.style.display = i === index ? '' : 'none';
+        });
+    }
+    function resetNovelDisplay() {
+        document.querySelectorAll('.novel-text').forEach(function(el) {
+            el.style.display = '';
+        });
+    }
 
     modalOverlay.addEventListener('click', function(e) {
         if (e.target === this) {
