@@ -1074,6 +1074,17 @@
         }
 
         // 左右方向键翻页（仅摸鱼模式下）
+        // 上下方向键滚动页面（仅摸鱼模式下）
+        if ((e.code === 'ArrowUp' || e.code === 'ArrowDown') && document.body.classList.contains('novel-mode')) {
+            e.preventDefault();
+            const step = 200;
+            if (e.code === 'ArrowUp') {
+                chatArea.scrollTop = Math.max(0, chatArea.scrollTop - step);
+            } else {
+                chatArea.scrollTop = Math.min(chatArea.scrollHeight, chatArea.scrollTop + step);
+            }
+        }
+
         if ((e.code === 'ArrowRight' || e.code === 'ArrowLeft') && document.body.classList.contains('novel-mode')) {
             e.preventDefault();
             const allNovel = document.querySelectorAll('.novel-text');
