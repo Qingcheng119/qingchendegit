@@ -448,6 +448,15 @@
             text-align: right;
         }
         .msg.assistant .time { text-align: left; }
+        .msg.user .time { margin-right: 0; text-align: right; }
+        
+        /* 用户消息容器调整 */
+        .msg.user > div {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0;
+        }
     </style>
 </head>
 <body>
@@ -595,7 +604,7 @@
         '就像少年顺着山间的溪流逆行而上，每一道弯都是一个境界，每一座峰都是一重天。',
         '就像青城山上那座藏经阁，你进去的时候拿了哪一层的心法，往后就只能练那一层的功夫——换不了，悔不了。',
         '当年那位老祖之所以坐化，就是因为体内灵力积累过多——不是不够用，是散不出去。老人说到这里叹了口气，端起茶杯抿了一口。',
-        '就像出关的那天清晨，他站在青城山顶，看着云海翻涌。天地之间的灵气好像都在回应他——不是因为他变强了，而是他终于看懂了这方天地的规矩。',
+        '就像出关的那天清晨，他站在青城山顶，看着云海翻涌。天地之间的灵气好像都在回应他——不是因为他变强了，而是他终于看懂了这方天地的纹理。',
         '他缓缓收剑入鞘，山谷间的雾气重新聚拢。没人知道方才发生了什么，只有石壁上那道三丈深的剑痕，在月光下泛着幽光。',
         '此时他并不知道，三日后的一剑，将斩开整个天穹。',
         '老人缓缓翻开泛黄的书页，上面记载的功法早已失传——不，不是失传，是不敢有人练。',
@@ -792,7 +801,7 @@
             { fake: '如果 <code>immediate</code> 设为 <code>true</code>，会在第一次触发时立即执行，之后在延迟时间内再次触发不会执行。', novel: '"修炼一途，讲究的是收放自如。"老者缓缓说道，"你可知为何同是筑基境，有人能一剑开山，有人却连灵气外放都做不到？"' },
         ];
 
-        let html = '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;"><span style="color:#d73a49;">function</span> <span style="color:#6f42c1;">debounce</span>(fn, delay, immediate = <span style="color:#005cc5;">false</span>) {\n    <span style="color:#d73a49;">let</span> timer = <span style="color:#005cc5;">null</span>;\n    <span style="color:#d73a49;">return function</span>(...args) {\n        <span style="color:#d73a49;">const</span> callNow = immediate && !timer;\n        <span style="color:#d73a49;">if</span> (timer) clearTimeout(timer);\n        timer = setTimeout(() => {\n            timer = <span style="color:#005cc5;">null</span>;\n            <span style="color:#d73a49;">if</span> (!immediate) fn.apply(<span style="color:#005cc5;">this</span>, args);\n        }, delay);\n        <span style="color:#d73a49;">if</span> (callNow) fn.apply(<span style="color:#005cc5;">this</span>, args);\n    };\n}</pre>';
+        let html = '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function debounce(func, wait, immediate) {\n  let timeout;\n  return function(...args) {\n    clearTimeout(timeout);\n    if (immediate) {\n      func.apply(this, args);\n    } else {\n      timeout = setTimeout(() => func.apply(this, args), wait);\n    }\n  };\n}\n\nconst search = debounce((query) => {\n  console.log(\'搜索：\', query);\n}, 300);</pre>';
 
         asstContent.forEach(item => {
             html += `<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`;
@@ -814,10 +823,10 @@
             html2 += `<p><span class="fake-text">${item.fake}</span><span class="novel-text">${item.novel}</span></p>`;
         });
         html2 += '<ul style="margin:8px 0 8px 20px;">'
-            + '<li><strong>防抖 (Debounce)</strong> — <span class="fake-text">频繁触发时只执行最后一次</span><span class="novel-text">就像积蓄灵力，不出手则已，一出手必中</span></li>'
-            + '<li><strong>节流 (Throttle)</strong> — <span class="fake-text">固定时间间隔内只执行一次</span><span class="novel-text">好比心法运转的周天循环，稳扎稳打，一步一个脚印</span></li>'
+            + '<li><strong>防抖 (Debounce)</strong> — <span class="fake-text">频繁触发时只执行最后一次</span><span class="novel-text">就像积蓄灵力，不出手则已，一出手必中。</span></li>'
+            + '<li><strong>节流 (Throttle)</strong> — <span class="fake-text">固定时间间隔内只执行一次</span><span class="novel-text">好比心法运转的周天循环，稳扎稳打，一步一个脚印。</span></li>'
             + '</ul>';
-        html2 += '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;"><span style="color:#d73a49;">function</span> <span style="color:#6f42c1;">throttle</span>(fn, interval) {\n    <span style="color:#d73a49;">let</span> lastTime = <span style="color:#005cc5;">0</span>;\n    <span style="color:#d73a49;">return function</span>(...args) {\n        <span style="color:#d73a49;">const</span> now = Date.now();\n        <span style="color:#d73a49;">if</span> (now - lastTime >= interval) {\n            lastTime = now;\n            fn.apply(<span style="color:#005cc5;">this</span>, args);\n        }\n    };\n}</pre>';
+        html2 += '<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:\'SF Mono\',\'Consolas\',monospace;overflow-x:auto;line-height:1.6;">function throttle(func, limit) {\n  let inThrottle;\n  return function(...args) {\n    if (!inThrottle) {\n      func.apply(this, args);\n      inThrottle = true;\n      setTimeout(() => inThrottle = false, limit);\n    }\n  };\n}\n\nwindow.addEventListener(\'scroll\', throttle(() => {\n  console.log(\'滚动事件\');\n}, 300));</pre>';
         html2 += `<p><span class="fake-text">实际项目中建议直接使用 Lodash 提供的成熟实现。</span><span class="novel-text">少年轻轻抚摸着手中那柄锈迹斑斑的铁剑，剑身上隐隐有符文浮现。"总有一天，"他喃喃道，"我也要像传说中的剑仙一样，一剑可破万法。"</span></p>`;
 
         addMessageHTML('assistant', html2, time);
@@ -868,7 +877,6 @@
             wrapper.appendChild(bubble);
             wrapper.appendChild(timeEl);
             msg.appendChild(wrapper);
-            msg.appendChild(avatar);
         } else {
             wrapper.appendChild(bubble);
             wrapper.appendChild(timeEl);
@@ -896,7 +904,6 @@
         wrapper.appendChild(timeEl);
         if (isUser) {
             msg.appendChild(wrapper);
-            msg.appendChild(avatar);
         } else {
             msg.appendChild(avatar);
             msg.appendChild(wrapper);
@@ -959,7 +966,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': '***' + apiKey
+                    'Authorization': 'Bearer ' + apiKey
                 },
                 body: JSON.stringify({
                     model: model,
@@ -985,7 +992,7 @@
 
             reply = reply
                 .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-                    return `<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:'SF Mono','Consolas',monospace;overflow-x:auto;line-height:1.6;">${escapeHtml(code)}</pre>`;
+                    return `<pre style="background:#f8f9fa;border:1px solid #e9ecef;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;font-family:'SF Mono','Consolas',monospace;overflow-x:auto;line-height:1.6;">${code}</pre>`;
                 })
                 .replace(/`([^`]+)`/g, '<code>$1</code>')
                 .replace(/\n\n/g, '</p><p>')
@@ -1005,105 +1012,31 @@
             inputBox.disabled = false;
             sendBtn.disabled = false;
             sendBtn.textContent = '➤';
-            inputBox.focus();
             scrollToBottom();
         }
     }
 
-    function escapeHtml(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    function scrollToBottom() {
-        setTimeout(() => chatArea.scrollTop = chatArea.scrollHeight, 50);
-    }
-
-    // ===== 界面控制 =====
+    // ===== 辅助函数 =====
     function enableChat(enabled) {
         inputBox.disabled = !enabled;
         sendBtn.disabled = !enabled;
-        if (enabled) inputBox.focus();
     }
 
-    // ===== 事件绑定 =====
-    settingsBtn.addEventListener('click', () => {
-        apiKeyInput.value = apiKey;
-        modelSelect.value = model;
-        modalStatus.textContent = '';
-        modeButtons.forEach(b => {
-            b.classList.toggle('active', b.dataset.mode === currentMode);
-        });
-        updateNovelFileStatus();
-        apiSection.classList.toggle('show', currentMode === 'api');
-        modalOverlay.classList.add('show');
-    });
+    function scrollToBottom() {
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
 
-    modalCancel.addEventListener('click', () => modalOverlay.classList.remove('show'));
-    modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) modalOverlay.classList.remove('show');
-    });
-
-    modalSave.addEventListener('click', () => {
-        const activeMode = document.querySelector('.mode-switch button.active');
-        const newMode = activeMode ? activeMode.dataset.mode : 'offline';
-
-        if (newMode === 'api') {
-            const newKey = apiKeyInput.value.trim();
-            const newModel = modelSelect.value;
-            if (!newKey) {
-                modalStatus.className = 'status-msg err';
-                modalStatus.textContent = '请输入 API Key';
-                return;
-            }
-            if (!newKey.startsWith('sk-')) {
-                modalStatus.className = 'status-msg err';
-                modalStatus.textContent = 'API Key 格式不对，应该以 sk- 开头';
-                return;
-            }
-            apiKey = newKey;
-            model = newModel;
-            localStorage.setItem('deepseek_key', apiKey);
-            localStorage.setItem('deepseek_model', model);
-        }
-
-        const modeChanged = currentMode !== newMode;
-        currentMode = newMode;
-        localStorage.setItem('moyu_mode', currentMode);
-
-        modalStatus.className = 'status-msg ok';
-        modalStatus.textContent = '✅ 已保存！';
-
-        setTimeout(() => {
-            modalOverlay.classList.remove('show');
-            if (modeChanged) {
-                // 清空对话，重新加载
-                chatInner.innerHTML = '';
-                welcomeMsg.style.display = 'block';
-                welcomeMsg.textContent = '正在切换模式...';
-                messages = [];
-                offlineLoaded = false;
-                applyMode();
-                welcomeMsg.textContent = currentMode === 'offline'
-                    ? '🎭 离线摸鱼版 — 按空格看小说'
-                    : '🤖 在线 AI 版 — 配置好 Key 后开始聊天';
-            } else {
-                applyMode();
-            }
-        }, 600);
-    });
-
-    sendBtn.addEventListener('click', () => {
+    // ===== 事件监听 =====
+    sendBtn.addEventListener('click', function() {
         const text = inputBox.value.trim();
-        if (text && !isLoading && currentMode === 'api') {
-            inputBox.value = '';
-            inputBox.style.height = 'auto';
-            sendMessage(text);
-        }
+        if (!text) return;
+        inputBox.value = '';
+        inputBox.style.height = 'auto';
+        sendMessage(text);
     });
 
-    inputBox.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
+    inputBox.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter' || e.metaKey && e.key === 'Enter') {
             sendBtn.click();
         }
     });
@@ -1113,45 +1046,53 @@
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
-    // ===== 空格摸鱼 =====
-    let novelActive = false;
-    let indicatorTimeout = null;
-
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    document.addEventListener('keydown', function(e) {
+        if (e.code === 'Space' && document.activeElement !== inputBox) {
             e.preventDefault();
-            if (!novelActive) {
-                document.body.classList.add('novel-mode');
+            document.body.classList.toggle('novel-mode');
+            if (document.body.classList.contains('novel-mode')) {
                 indicator.classList.add('show');
-                novelActive = true;
+                setTimeout(() => indicator.classList.remove('show'), 2000);
             }
         }
     });
 
-    document.addEventListener('keyup', (e) => {
-        if (e.code === 'Space') {
-            document.body.classList.remove('novel-mode');
-            novelActive = false;
-            clearTimeout(indicatorTimeout);
-            indicatorTimeout = setTimeout(() => indicator.classList.remove('show'), 1200);
+    // 设置弹窗
+    settingsBtn.addEventListener('click', function() {
+        updateNovelFileStatus();
+        modalOverlay.classList.add('show');
+    });
+
+    modalCancel.addEventListener('click', function() {
+        modalOverlay.classList.remove('show');
+    });
+
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            modalOverlay.classList.remove('show');
         }
     });
 
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            document.body.classList.remove('novel-mode');
-            novelActive = false;
-            indicator.classList.remove('show');
-        }
+    modalSave.addEventListener('click', function() {
+        const mode = document.querySelector('.mode-switch button.active').dataset.mode;
+        apiKey = apiKeyInput.value.trim();
+        model = modelSelect.value;
+
+        currentMode = mode;
+        localStorage.setItem('moyu_mode', mode);
+        localStorage.setItem('deepseek_key', apiKey);
+        localStorage.setItem('deepseek_model', model);
+
+        modalStatus.className = 'status-msg ok';
+        modalStatus.textContent = '✅ 已保存设置';
+        setTimeout(() => {
+            modalStatus.textContent = '';
+            modalOverlay.classList.remove('show');
+            applyMode();
+        }, 1200);
     });
 
-    document.addEventListener('click', () => {
-        document.body.classList.remove('novel-mode');
-        novelActive = false;
-        indicator.classList.remove('show');
-    });
-
-    // 启动
+    // 初始化
     init();
 })();
 </script>
