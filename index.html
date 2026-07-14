@@ -182,6 +182,33 @@
         }
         .mode-switch button:hover:not(.active) { color: #555; }
 
+        /* 触发方式切换 */
+        .trigger-switch {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 3px;
+            margin-bottom: 6px;
+        }
+        .trigger-switch button {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            color: #888;
+        }
+        .trigger-switch button.active {
+            background: #fff;
+            color: #333;
+            box-shadow: 0 1px 4px rgba(0,0,0,.08);
+        }
+        .trigger-switch button:hover:not(.active) { color: #555; }
+
         .modal label { font-size: 13px; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
         .modal input[type="password"] {
             width: 100%;
@@ -535,6 +562,15 @@
             <div id="novelFileStatus" style="font-size:12px;margin-top:6px;min-height:18px;"></div>
         </div>
 
+        <!-- 触发方式 -->
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #eee;">
+            <label>🔍 检查模式触发方式</label>
+            <div class="trigger-switch">
+                <button data-trigger="toggle" class="active">点击空格切换</button>
+                <button data-trigger="hold">长按空格</button>
+            </div>
+        </div>
+
         <div class="btn-row">
             <button class="btn-secondary" id="modalCancel">取消</button>
             <button class="btn-primary" id="modalSave">保存</button>
@@ -605,6 +641,7 @@
     let apiKey = localStorage.getItem('deepseek_key') || '';
     let model = localStorage.getItem('deepseek_model') || 'deepseek-chat';
     let currentMode = localStorage.getItem('moyu_mode') || 'offline'; // 'offline' | 'api'
+    let inspectionTrigger = localStorage.getItem('inspection_trigger') || 'toggle'; // 'toggle' | 'hold'
     let messages = [];
     let isLoading = false;
     let offlineLoaded = false;
@@ -660,6 +697,7 @@
     const welcomeMsg = document.getElementById('welcomeMsg');
     const apiSection = document.getElementById('apiSection');
     const modeButtons = document.querySelectorAll('.mode-switch button');
+    const triggerButtons = document.querySelectorAll('.trigger-switch button');
     const novelFileInput = document.getElementById('novelFileInput');
     const clearNovelBtn = document.getElementById('clearNovelBtn');
     const novelFileStatus = document.getElementById('novelFileStatus');
@@ -686,6 +724,14 @@
             welcomeMsg.textContent = '🎭 离线摸鱼版 — 按空格看小说';
             loadOfflineDemo();
         }
+    });
+
+    // ===== 触发方式切换 =====
+    triggerButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            triggerButtons.forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+        });
     });
 
     // ===== 小说文件上传 =====
@@ -759,6 +805,11 @@
             });
             apiSection.classList.add('show');
         }
+
+        // 设置触发方式 UI
+        triggerButtons.forEach(b => {
+            b.classList.toggle('active', b.dataset.trigger === inspectionTrigger);
+        });
 
         apiKeyInput.value = apiKey;
         modelSelect.value = model;
@@ -1057,14 +1108,17 @@
         const newMode = document.querySelector('.mode-switch button.active').dataset.mode;
         const newKey = apiKeyInput.value.trim();
         const newModel = modelSelect.value;
+        const newTrigger = document.querySelector('.trigger-switch button.active').dataset.trigger;
 
         localStorage.setItem('moyu_mode', newMode);
         localStorage.setItem('deepseek_key', newKey);
         localStorage.setItem('deepseek_model', newModel);
+        localStorage.setItem('inspection_trigger', newTrigger);
 
         currentMode = newMode;
         apiKey = newKey;
         model = newModel;
+        inspectionTrigger = newTrigger;
 
         applyMode();
         modalOverlay.classList.remove('show');
@@ -1102,22 +1156,36 @@
         }
     });
 
-    // 空格键事件（离线模式下切换小说显示）
+    // 空格键事件（离线模式下切换/长按显示小说）
     document.addEventListener('keydown', function(e) {
         if (e.code === 'Space' && currentMode === 'offline') {
             e.preventDefault();
-            document.body.classList.toggle('novel-mode');
-            if (document.body.classList.contains('novel-mode')) {
-                currentNovelPage = 0;
-                showNovelPage(0);
-                const total = document.querySelectorAll('.novel-text').length;
-                indicator.textContent = '🔍 检查模式 1/' + total;
+            if (inspectionTrigger === 'toggle') {
+                // 点击切换模式
+                document.body.classList.toggle('novel-mode');
+                if (document.body.classList.contains('novel-mode')) {
+                    currentNovelPage = 0;
+                    showNovelPage(0);
+                    const total = document.querySelectorAll('.novel-text').length;
+                    indicator.textContent = '🔍 检查模式 1/' + total;
+                } else {
+                    resetNovelDisplay();
+                    indicator.textContent = '🔍 工作模式';
+                }
+                indicator.classList.add('show');
+                setTimeout(() => indicator.classList.remove('show'), 1500);
             } else {
-                resetNovelDisplay();
-                indicator.textContent = '🔍 工作模式';
+                // 长按模式 — 按下时显示
+                if (!document.body.classList.contains('novel-mode')) {
+                    document.body.classList.add('novel-mode');
+                    currentNovelPage = 0;
+                    showNovelPage(0);
+                    const total = document.querySelectorAll('.novel-text').length;
+                    indicator.textContent = '🔍 检查模式 1/' + total;
+                    indicator.classList.add('show');
+                    clearTimeout(indicator._holdTimer);
+                }
             }
-            indicator.classList.add('show');
-            setTimeout(() => indicator.classList.remove('show'), 1500);
         }
         // 左右翻页
         if ((e.code === 'ArrowRight' || e.code === 'ArrowLeft') && document.body.classList.contains('novel-mode')) {
@@ -1145,6 +1213,16 @@
             } else {
                 chatArea.scrollTop = Math.min(chatArea.scrollHeight, chatArea.scrollTop + step);
             }
+        }
+    });
+
+    // 长按模式 — 松开空格时隐藏
+    document.addEventListener('keyup', function(e) {
+        if (e.code === 'Space' && currentMode === 'offline' && inspectionTrigger === 'hold') {
+            document.body.classList.remove('novel-mode');
+            resetNovelDisplay();
+            indicator.textContent = '🔍 工作模式';
+            indicator._holdTimer = setTimeout(() => indicator.classList.remove('show'), 300);
         }
     });
 
